@@ -46,6 +46,17 @@ defmodule Advent.Day03 do
   What is the Manhattan distance from the central port to the closest intersection?
   """
 
+  ###
+  # This algorithm splits the input into segments with a starting position, length, direction and distance from start.
+  # Then checks eachs segment in one path with each segment in the other path for intersection in O(1) time per segment
+  # match (i.e. O(n²) in total)
+  #
+  # This was rewritten from a solution where each point on the path was mapped out. Execution time went down from
+  # ~350 ms to ~20 ms :)
+  #
+  # The algortithm for part 1 and part 2 is the same.
+  ###
+
   @doc "Part 1"
   def closest_intersection(input) do
     input
@@ -67,26 +78,63 @@ defmodule Advent.Day03 do
   end
 
   defp walk_path(path) do
-    walk = %{}
+    walk = []
     walk_path(walk, 0, {0, 0}, path)
   end
 
   defp walk_path(walk, _dist, _pos, []), do: walk
-  defp walk_path(walk, dist, pos, [{_dir, 0} | rest]), do: walk_path(walk, dist, pos, rest)
 
-  defp walk_path(walk, dist, {x, y}, [{{dir_x, dir_y} = dir, count} | rest]) do
-    pos = {x + dir_x, y + dir_y}
-    dist = dist + 1
-    walk = Map.put_new(walk, pos, dist)
-    walk_path(walk, dist, pos, [{dir, count - 1} | rest])
+  defp walk_path(walk, dist, {x, y}, [{{dir_x, dir_y}, count} | rest]) do
+    # This builds a segment with a starting position, direction, length and starting distance from central port.
+    from_pos = {x, y}
+    to_pos = {x + count * dir_x, y + count * dir_y}
+
+    from_dist = dist
+    to_dist = dist + count
+
+    # Save all segments as going either right or up. This will ease the intersection finding later.
+    # But for this to work, we also need to save the distance-step, i.e., the step we take in distance, when we
+    # "walk the line".
+    # This is 1 for lines already going up or right and -1 for lines that started as left or down.
+    [{segment_from, segment_dist}, _] = [{from_pos, from_dist}, {to_pos, to_dist}] |> Enum.sort()
+    dist_step = dir_x + dir_y
+
+    walk = [{{segment_from, {abs(dir_x), abs(dir_y)}, count}, {segment_dist, dist_step}} | walk]
+    walk_path(walk, to_dist, to_pos, rest)
   end
 
   # Finds intersections and returns a list of [{point, total_dist}]
-  defp find_intersections(walks) do
-    [set_1, set_2] = walks |> Enum.map(&(&1 |> Map.keys() |> MapSet.new()))
+  defp find_intersections([walk_1, walk_2]) do
+    for dist_segment_1 <- walk_1,
+        dist_segment_2 <- walk_2 do
+      {dist_segment_1, dist_segment_2}
+    end
+    |> Enum.flat_map(fn {dist_segment_1, dist_segment_2} -> segment_crosses(dist_segment_1, dist_segment_2) end)
+    |> Enum.reject(fn {point, _dist} -> point == {0, 0} end)
+  end
 
-    MapSet.intersection(set_1, set_2)
-    |> Enum.map(fn point -> {point, walks |> Enum.map(&Map.fetch!(&1, point)) |> Enum.sum()} end)
+  # Both segments are vertical
+  defp segment_crosses({{_, {0, 1}, _}, _}, {{_, {0, 1}, _}, _}) do
+    []
+  end
+
+  # Both segments are horizontal
+  defp segment_crosses({{_, {1, 0}, _}, _}, {{_, {1, 0}, _}, _}) do
+    []
+  end
+
+  # One horizontal and one vertical
+  defp segment_crosses({{_, {1, 0}, _}, _} = s1, {{_, {0, 1}, _}, _} = s2), do: segment_crosses(s2, s1)
+
+  # One vertical and one horizontal
+  defp segment_crosses({{{x1, y1}, {0, 1}, count_1}, {dist_1, ds1}}, {{{x2, y2}, {1, 0}, count_2}, {dist_2, ds2}}) do
+    if y1 <= y2 and y1 + count_1 >= y2 and x2 <= x1 and x2 + count_2 >= x1 do
+      cross = {x1, y2}
+      total_dist = dist_1 + ds1 * (y2 - y1) + dist_2 + ds2 * (x1 - x2)
+      [{cross, total_dist}]
+    else
+      []
+    end
   end
 
   defp manhattan_distance_to_zero({{x, y}, _dist}), do: abs(x) + abs(y)
