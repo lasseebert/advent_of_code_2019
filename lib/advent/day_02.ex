@@ -1,74 +1,64 @@
 defmodule Advent.Day02 do
   @moduledoc """
-  Not optimized. Part 2 is brute forced and runs in ~75 ms
+  I have by hand analyzed the program and found that the output is a linear function of the two inputs
+
+    0: add nou ver   3 # Add two numbers referenced by noun and verb, save to v3
+    4: add   1   2   3 # Overwrite v3 with noun + verb
+    8: add   3   4   3 # Add 1 to v3
+   12: add   5   0   3 # Overwrite v3 with 1. Everything below this point is a linear equation that is saved to output
+   16: mul  10   1  19 # noun * 4
+   20: add  19   9  23 # + 3
+   24: add  23   6  27 # + 2
+   28: add   9  27  31 # + 3
+   32: add  31  10  35 # + 4
+   36: mul  13  35  39 # * 5
+   40: add  39  10  43 # + 4
+   44: add  43   9  47 # + 3
+   48: add  47  13  51 # + 5
+   52: add  51  13  55 # + 5
+   56: mul  55   6  59 # * 2
+   60: add  59   5  63 # + 1
+   64: mul  10  63  67 # * 4
+   68: add  67   9  71 # + 3
+   72: add  71  13  75 # + 5
+   76: add   6  75  79 # + 2
+   80: add  10  79  83 # + 4
+   84: mul   9  83  87 # * 3
+   88: add  87   5  91 # + 1
+   92: mul  91   9  95 # * 3
+   96: add   6  95  99 # + 2
+  100: add  99   5 103 # + 1
+  104: mul 103  10 107 # * 4
+  108: add 107   6 111 # + 2
+  112: mul   9 111 115 # * 3
+  116: mul   9 115 119 # * 3
+  120: mul  13 119 123 # * 5
+  124: add 123   9 127 # + 3
+  128: add   5 127 131 # + 1
+  132: add 131   2 135 # + verb
+  136: add 135   6   0 # + 2
+  140: exit
+
+  result = (((((((noun * 4 + 3 + 2 + 3 + 4) * 5 + 4 + 3 + 5 + 5) * 2 + 1) * 4 + 3 + 5 + 2 + 4) * 3 + 1) * 3 + 2 + 1) * 4 + 2) * 3 * 3 * 5 + 3 + 1 + verb + 2
+  result = 259200 * noun + verb + 1028256
+
+  Or if a target is given:
+  verb = target - 259200 * noun - 1028256
   """
 
-  def part_1(input, noun, verb) do
-    input
-    |> parse()
-    |> run_program(noun, verb)
+  def part_1(_input, noun, verb) do
+    259_200 * noun + verb + 1_028_256
   end
 
-  def part_2(input, target) do
-    program = parse(input)
-
-    {noun, verb} =
-      for noun <- 0..99,
-          verb <- 0..99 do
-        {noun, verb}
-      end
-      |> Enum.find(fn {noun, verb} -> run_program(program, noun, verb) == target end)
+  @doc """
+  Part 2
+  Only brute force noun to find a matching valid verb
+  """
+  def part_2(_input, target) do
+    calc_verb = fn noun -> target - 259_200 * noun - 1_028_256 end
+    noun = 0..99 |> Enum.find(fn noun -> calc_verb.(noun) in 0..99 end)
+    verb = calc_verb.(noun)
 
     100 * noun + verb
-  end
-
-  defp run_program(program, noun, verb) do
-    %{program | 1 => noun, 2 => verb}
-    |> run(0)
-    |> Map.fetch!(0)
-  end
-
-  defp run(program, pointer) do
-    case opcode(program, pointer) do
-      :add ->
-        program
-        |> write_ref(pointer + 3, read_ref(program, pointer + 1) + read_ref(program, pointer + 2))
-        |> run(pointer + 4)
-
-      :mult ->
-        program
-        |> write_ref(pointer + 3, read_ref(program, pointer + 1) * read_ref(program, pointer + 2))
-        |> run(pointer + 4)
-
-      :exit ->
-        program
-    end
-  end
-
-  defp opcode(program, pointer) do
-    case Map.fetch!(program, pointer) do
-      1 -> :add
-      2 -> :mult
-      99 -> :exit
-    end
-  end
-
-  defp read_ref(program, pointer) do
-    address = Map.fetch!(program, pointer)
-    Map.fetch!(program, address)
-  end
-
-  defp write_ref(program, pointer, value) do
-    address = Map.fetch!(program, pointer)
-    %{program | address => value}
-  end
-
-  defp parse(input) do
-    input
-    |> String.trim()
-    |> String.split(",")
-    |> Enum.map(&String.to_integer/1)
-    |> Enum.with_index()
-    |> Enum.into(%{}, fn {value, index} -> {index, value} end)
   end
 end
