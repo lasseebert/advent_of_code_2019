@@ -36,7 +36,7 @@ defmodule Advent.Day01Test do
       assert Day01.required_fuel(input) == 33_583
     end
 
-    test "real input" do
+    test "puzzle input" do
       input = File.read!("input_files/day_01.txt")
       assert Day01.required_fuel(input) == 3_231_195
     end
@@ -87,7 +87,7 @@ defmodule Advent.Day01Test do
       assert Day01.required_fuel_recursive(input) == 10
     end
 
-    test "real input" do
+    test "puzzle input" do
       input = File.read!("input_files/day_01.txt")
       assert Day01.required_fuel_recursive(input) == 4_843_929
     end
