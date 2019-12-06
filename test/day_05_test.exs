@@ -4,6 +4,7 @@ defmodule Advent.Day05Test do
   alias Advent.Day05
 
   describe "part 1" do
+    @tag :puzzle_input
     test "puzzle input" do
       program = File.read!("input_files/day_05.txt")
       assert Day05.run_diagnostics(program, 1) == 14_155_342
@@ -17,6 +18,7 @@ defmodule Advent.Day05Test do
       assert Day05.run_diagnostics(program, 8) == 1
     end
 
+    @tag :puzzle_input
     test "puzzle input" do
       program = File.read!("input_files/day_05.txt")
       assert Day05.run_diagnostics(program, 5) == 8_684_145

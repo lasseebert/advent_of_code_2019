@@ -31,6 +31,7 @@ defmodule Advent.Day03Test do
       assert Day03.closest_intersection(input) == 135
     end
 
+    @tag :puzzle_input
     test "puzzle input" do
       input = File.read!("input_files/day_03.txt")
       assert Day03.closest_intersection(input) == 2050
@@ -65,6 +66,7 @@ defmodule Advent.Day03Test do
       assert Day03.fewest_steps_to_intersection(input) == 410
     end
 
+    @tag :puzzle_input
     test "puzzle input" do
       input = File.read!("input_files/day_03.txt")
       assert Day03.fewest_steps_to_intersection(input) == 21_666

@@ -3,7 +3,7 @@ defmodule Advent.Day01Test do
 
   alias Advent.Day01
 
-  describe "required_fuel" do
+  describe "part 1" do
     test "example 1" do
       input = """
       12
@@ -36,13 +36,14 @@ defmodule Advent.Day01Test do
       assert Day01.required_fuel(input) == 33_583
     end
 
+    @tag :puzzle_input
     test "puzzle input" do
       input = File.read!("input_files/day_01.txt")
       assert Day01.required_fuel(input) == 3_231_195
     end
   end
 
-  describe "required_fuel_recursive" do
+  describe "part 2" do
     test "example 1" do
       input = """
       12
@@ -87,6 +88,7 @@ defmodule Advent.Day01Test do
       assert Day01.required_fuel_recursive(input) == 10
     end
 
+    @tag :puzzle_input
     test "puzzle input" do
       input = File.read!("input_files/day_01.txt")
       assert Day01.required_fuel_recursive(input) == 4_843_929

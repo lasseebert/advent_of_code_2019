@@ -22,6 +22,7 @@ defmodule Advent.Day06Test do
       assert Day06.count_total_orbits(input) == 42
     end
 
+    @tag :puzzle_input
     test "puzzle input" do
       input = File.read!("input_files/day_06.txt")
       assert Day06.count_total_orbits(input) == 140_608
@@ -49,6 +50,7 @@ defmodule Advent.Day06Test do
       assert Day06.travel_distance(input, "YOU", "SAN") == 4
     end
 
+    @tag :puzzle_input
     test "puzzle input" do
       input = File.read!("input_files/day_06.txt")
       assert Day06.travel_distance(input, "YOU", "SAN") == 337
