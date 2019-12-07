@@ -3,6 +3,11 @@ defmodule Advent.Day02Test do
 
   alias Advent.Day02
 
+  setup do
+    start_supervised!(Advent.Intcode.Supervisor)
+    :ok
+  end
+
   describe "part 1" do
     test "example 1" do
       assert Day02.part_1("1,9,10,3,2,3,11,0,99,30,40,50", 9, 10) == 3500

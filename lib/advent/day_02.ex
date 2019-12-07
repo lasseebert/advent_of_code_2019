@@ -41,7 +41,6 @@ defmodule Advent.Day02 do
   """
 
   alias Advent.Intcode
-  alias Advent.Intcode.RuntimeState
 
   def part_1(input, noun, verb) do
     input
@@ -96,8 +95,8 @@ defmodule Advent.Day02 do
     program
     |> Intcode.put_program_address(1, noun)
     |> Intcode.put_program_address(2, verb)
-    |> RuntimeState.new(0)
-    |> Intcode.run()
+    |> Intcode.run_with_inputs([])
+    |> elem(1)
     |> Map.fetch!(:program)
     |> Intcode.get_program_address(0)
   end

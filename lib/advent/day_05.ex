@@ -11,6 +11,12 @@ defmodule Advent.Day05 do
   def run_diagnostics(raw_program, input) do
     raw_program
     |> Intcode.parse_program()
-    |> Intcode.run(input)
+    |> Intcode.run_with_inputs([input])
+    |> elem(0)
+    |> Enum.uniq()
+    |> case do
+      [output] -> output
+      [0, output] -> output
+    end
   end
 end
