@@ -9,26 +9,29 @@ defmodule Advent.Intcode.RuntimeState do
           program: Intcode.program(),
           pointer: Intcode.address(),
           exited: boolean,
-          caller: pid
+          caller: pid,
+          tag: Intcode.tag()
         }
 
   defstruct [
     :program,
     :pointer,
     :exited,
-    :caller
+    :caller,
+    :tag
   ]
 
   @doc """
   Builds a new runtime state from a program and the input
   """
-  @spec new(Intcode.program(), pid) :: t
-  def new(program, caller) do
+  @spec new(Intcode.program(), pid, Intcode.tag()) :: t
+  def new(program, caller, tag) do
     %__MODULE__{
       program: program,
       pointer: 0,
       exited: false,
-      caller: caller
+      caller: caller,
+      tag: tag
     }
   end
 end

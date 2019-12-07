@@ -50,14 +50,11 @@ defmodule Advent.Intcode.Runner do
   end
 
   defp run_operation(state, {:input, [{:ref, addr}]}) do
-    send(state.caller, {:input, self()})
-
     value =
       receive do
         {:input, value} -> value
       after
-        1_000 ->
-          raise "timeout waiting for input"
+        1_000 -> raise "timeout waiting for input"
       end
 
     write(state, addr, value)
@@ -102,7 +99,7 @@ defmodule Advent.Intcode.Runner do
 
   defp run_operation(state, {:exit, []}) do
     state = %{state | exited: true}
-    send(state.caller, {:program_exit, state})
+    send(state.caller, {:program_exit, state.tag, state})
     state
   end
 
@@ -152,7 +149,7 @@ defmodule Advent.Intcode.Runner do
   defp read_var(_state, {:imm, value}), do: value
 
   defp output(state, value) do
-    send(state.caller, {:output, value})
+    send(state.caller, {:output, state.tag, value})
     state
   end
 

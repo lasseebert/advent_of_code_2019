@@ -17,10 +17,10 @@ defmodule Advent.Intcode.Supervisor do
   @doc """
   Starts an Intcode runtime and runs it in a supervised process
   """
-  @spec run(RuntimeState.t()) :: :ok
+  @spec run(RuntimeState.t()) :: {:ok, pid}
   def run(state) do
-    {:ok, _pid} = DynamicSupervisor.start_child(@name, {Runner, state})
-    :ok
+    {:ok, pid} = DynamicSupervisor.start_child(@name, {Runner, state})
+    {:ok, pid}
   end
 
   @impl DynamicSupervisor

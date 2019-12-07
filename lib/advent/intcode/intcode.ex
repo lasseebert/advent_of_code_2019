@@ -9,18 +9,22 @@ defmodule Advent.Intcode do
   @opaque program :: map
   @type value :: integer
   @type address :: non_neg_integer
+  @type tag :: any
 
   @doc """
-  Runs an Intcode program in a supervised process
-  When an input is needed, {:input, pid} is sent to the calling process that must respond with {:input, value}
-  When the program outputs something {:output, value} is sent to the calling process
-  When the program exists, {:program_exit, state} is sent the the caller.
+  Runs an Intcode program in a supervised process with a tag
+  When an input is needed, {:input, value} is received in the program process
+  When the program outputs something {:output, tag, value} is sent to the calling process
+  When the program exists, {:program_exit, tag, state} is sent the the caller.
   """
-  @spec run(program) :: :ok
-  def run(program) do
-    program
-    |> RuntimeState.new(self())
-    |> Intcode.Supervisor.run()
+  @spec run(program, tag) :: pid
+  def run(program, tag) do
+    {:ok, pid} =
+      program
+      |> RuntimeState.new(self(), tag)
+      |> Intcode.Supervisor.run()
+
+    pid
   end
 
   @doc """
@@ -29,14 +33,10 @@ defmodule Advent.Intcode do
   """
   @spec run_with_inputs(program, [value], timeout) :: {[value], RuntimeState.t()}
   def run_with_inputs(program, inputs, timeout \\ 1_000) do
-    run(program)
+    pid = run(program, :run_with_inputs)
 
     Enum.each(inputs, fn input ->
-      receive do
-        {:input, pid} -> send(pid, {:input, input})
-      after
-        timeout -> raise "timeout"
-      end
+      send(pid, {:input, input})
     end)
 
     receive_outputs(timeout, [])
@@ -44,8 +44,8 @@ defmodule Advent.Intcode do
 
   defp receive_outputs(timeout, acc) do
     receive do
-      {:output, value} -> receive_outputs(timeout, [value | acc])
-      {:program_exit, state} -> {Enum.reverse(acc), state}
+      {:output, :run_with_inputs, value} -> receive_outputs(timeout, [value | acc])
+      {:program_exit, :run_with_inputs, state} -> {Enum.reverse(acc), state}
     after
       timeout -> raise "timeout"
     end
