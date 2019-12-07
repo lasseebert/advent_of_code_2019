@@ -38,27 +38,104 @@ defmodule Advent.Day02 do
   132: add 131   2 135 # + verb
   136: add 135   6   0 # + 2
   140: exit
-
-  result = (((((((noun * 4 + 3 + 2 + 3 + 4) * 5 + 4 + 3 + 5 + 5) * 2 + 1) * 4 + 3 + 5 + 2 + 4) * 3 + 1) * 3 + 2 + 1) * 4 + 2) * 3 * 3 * 5 + 3 + 1 + verb + 2
-  result = 259200 * noun + verb + 1028256
-
-  Or if a target is given:
-  verb = target - 259200 * noun - 1028256
   """
 
-  def part_1(_input, noun, verb) do
-    259_200 * noun + verb + 1_028_256
+  def part_1(input, noun, verb) do
+    input
+    |> parse()
+    |> run_program(noun, verb)
   end
 
   @doc """
-  Part 2
-  Only brute force noun to find a matching valid verb
+  Since the result is a linear function of the two inputs, we can write:
+
+  f(n, v) = n*a + v*b + c
+
+  f(0, 0) == f00 == c
+  f(1, 0) == f10 == a + c
+  f(0, 1) == f01 == b + c
+
+  a = f10 - f00
+  b = f01 - f00
+  c = f00
+
+  n = (target - v * b - c) / a
   """
-  def part_2(_input, target) do
-    calc_verb = fn noun -> target - 259_200 * noun - 1_028_256 end
-    noun = 0..99 |> Enum.find(fn noun -> calc_verb.(noun) in 0..99 end)
-    verb = calc_verb.(noun)
+  def part_2(input, target) do
+    program = parse(input)
+
+    f00 = run_program(program, 0, 0)
+    f10 = run_program(program, 1, 0)
+    f01 = run_program(program, 0, 1)
+
+    a = f10 - f00
+    b = f01 - f00
+    c = f00
+
+    {noun, verb} =
+      0..99
+      |> Stream.map(fn verb ->
+        d = target - verb * b - c
+        noun = div(d, a)
+
+        if rem(d, a) == 0 and noun in 0..99 do
+          {noun, verb}
+        else
+          :error
+        end
+      end)
+      |> Enum.find(&(&1 != :error))
 
     100 * noun + verb
+  end
+
+  defp run_program(program, noun, verb) do
+    %{program | 1 => noun, 2 => verb}
+    |> run(0)
+    |> Map.fetch!(0)
+  end
+
+  defp run(program, pointer) do
+    case opcode(program, pointer) do
+      :add ->
+        program
+        |> write_ref(pointer + 3, read_ref(program, pointer + 1) + read_ref(program, pointer + 2))
+        |> run(pointer + 4)
+
+      :mult ->
+        program
+        |> write_ref(pointer + 3, read_ref(program, pointer + 1) * read_ref(program, pointer + 2))
+        |> run(pointer + 4)
+
+      :exit ->
+        program
+    end
+  end
+
+  defp opcode(program, pointer) do
+    case Map.fetch!(program, pointer) do
+      1 -> :add
+      2 -> :mult
+      99 -> :exit
+    end
+  end
+
+  defp read_ref(program, pointer) do
+    address = Map.fetch!(program, pointer)
+    Map.fetch!(program, address)
+  end
+
+  defp write_ref(program, pointer, value) do
+    address = Map.fetch!(program, pointer)
+    %{program | address => value}
+  end
+
+  defp parse(input) do
+    input
+    |> String.trim()
+    |> String.split(",")
+    |> Enum.map(&String.to_integer/1)
+    |> Enum.with_index()
+    |> Enum.into(%{}, fn {value, index} -> {index, value} end)
   end
 end
