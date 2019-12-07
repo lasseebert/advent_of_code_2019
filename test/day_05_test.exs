@@ -12,12 +12,6 @@ defmodule Advent.Day05Test do
   end
 
   describe "part 2" do
-    test "example 1" do
-      program = "3,9,8,9,10,9,4,9,99,-1,8"
-      assert Day05.run_diagnostics(program, 5) == 0
-      assert Day05.run_diagnostics(program, 8) == 1
-    end
-
     @tag :puzzle_input
     test "puzzle input" do
       program = File.read!("input_files/day_05.txt")
