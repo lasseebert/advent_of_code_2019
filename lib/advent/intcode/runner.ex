@@ -39,17 +39,17 @@ defmodule Advent.Intcode.Runner do
     |> run()
   end
 
-  defp run_operation(state, {:add, [a, b, {:ref, addr}]}) do
+  defp run_operation(state, {:add, [a, b, addr]}) do
     [a, b] = [a, b] |> Enum.map(&read_var(state, &1))
     write(state, addr, a + b)
   end
 
-  defp run_operation(state, {:mult, [a, b, {:ref, addr}]}) do
+  defp run_operation(state, {:mult, [a, b, addr]}) do
     [a, b] = [a, b] |> Enum.map(&read_var(state, &1))
     write(state, addr, a * b)
   end
 
-  defp run_operation(state, {:input, [{:ref, addr}]}) do
+  defp run_operation(state, {:input, [addr]}) do
     value =
       receive do
         {:input, value} -> value
@@ -85,16 +85,21 @@ defmodule Advent.Intcode.Runner do
     end
   end
 
-  defp run_operation(state, {:less_than, [a, b, {:ref, addr}]}) do
+  defp run_operation(state, {:less_than, [a, b, addr]}) do
     [a, b] = [a, b] |> Enum.map(&read_var(state, &1))
     result = if a < b, do: 1, else: 0
     write(state, addr, result)
   end
 
-  defp run_operation(state, {:equals, [a, b, {:ref, addr}]}) do
+  defp run_operation(state, {:equals, [a, b, addr]}) do
     [a, b] = [a, b] |> Enum.map(&read_var(state, &1))
     result = if a == b, do: 1, else: 0
     write(state, addr, result)
+  end
+
+  defp run_operation(state, {:relative_base, [a]}) do
+    a = read_var(state, a)
+    %{state | relative_base: state.relative_base + a}
   end
 
   defp run_operation(state, {:exit, []}) do
@@ -120,6 +125,7 @@ defmodule Advent.Intcode.Runner do
   defp instruction(6), do: {:jump_if_false, 2}
   defp instruction(7), do: {:less_than, 3}
   defp instruction(8), do: {:equals, 3}
+  defp instruction(9), do: {:relative_base, 1}
   defp instruction(99), do: {:exit, 0}
 
   defp build_params(state, start_address, opcode, num_params) do
@@ -129,6 +135,7 @@ defmodule Advent.Intcode.Runner do
           case opcode |> div(place) |> rem(10) do
             0 -> :ref
             1 -> :imm
+            2 -> :rel
           end
 
         value = read(state, start_address + index)
@@ -138,15 +145,19 @@ defmodule Advent.Intcode.Runner do
   end
 
   defp read(state, address) do
-    Map.fetch!(state.program, address)
+    Map.get(state.program, address, 0)
   end
 
-  defp write(state, address, value) do
-    %{state | program: %{state.program | address => value}}
+  defp write(state, {:ref, addr}, value), do: write(state, addr, value)
+  defp write(state, {:rel, addr}, value), do: write(state, addr + state.relative_base, value)
+
+  defp write(state, address, value) when is_integer(address) do
+    %{state | program: Map.put(state.program, address, value)}
   end
 
   defp read_var(state, {:ref, addr}), do: read(state, addr)
   defp read_var(_state, {:imm, value}), do: value
+  defp read_var(state, {:rel, addr}), do: read(state, addr + state.relative_base)
 
   defp output(state, value) do
     send(state.caller, {:output, state.tag, value})

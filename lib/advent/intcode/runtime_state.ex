@@ -10,7 +10,8 @@ defmodule Advent.Intcode.RuntimeState do
           pointer: Intcode.address(),
           exited: boolean,
           caller: pid,
-          tag: Intcode.tag()
+          tag: Intcode.tag(),
+          relative_base: Intcode.address()
         }
 
   defstruct [
@@ -18,7 +19,8 @@ defmodule Advent.Intcode.RuntimeState do
     :pointer,
     :exited,
     :caller,
-    :tag
+    :tag,
+    :relative_base
   ]
 
   @doc """
@@ -31,7 +33,8 @@ defmodule Advent.Intcode.RuntimeState do
       pointer: 0,
       exited: false,
       caller: caller,
-      tag: tag
+      tag: tag,
+      relative_base: 0
     }
   end
 end
