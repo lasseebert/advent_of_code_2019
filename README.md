@@ -1,6 +1,6 @@
 # Advent 2019
 
-![](https://github.com/lasseebert/advent_of_code_2019/workflows/Advent%20CI/badge.svg)
+[![](https://github.com/lasseebert/advent_of_code_2019/workflows/Advent%20CI/badge.svg)](https://github.com/lasseebert/advent_of_code_2019/actions)
 
 Me solving [Advent of Code 2019](https://adventofcode.com/2019) using Elixir.
 
