@@ -40,14 +40,9 @@ defmodule Advent.Day10 do
 
     {x, y} =
       asteroids
-      # Sort by distance. Here manhattan distance is good enough because asteroids are only grouped with other
-      # asteroids with the same direction
       |> Enum.sort_by(fn {x, y} -> abs(x - sx) + abs(y - sy) end)
-      # Group by direction, so that asteroids standing behind other asteroids must wait a turn
       |> Enum.group_by(&direction(station, &1))
-      # Sort groups by angle
       |> Enum.sort_by(fn {dir, _} -> sortable_angle(dir) end)
-      # The rest from here is just flatmapping while keeping the intended sort
       |> Enum.map(&elem(&1, 1))
       |> Enum.with_index()
       |> Enum.flat_map(fn {list, list_index} ->
@@ -57,7 +52,6 @@ defmodule Advent.Day10 do
       end)
       |> Enum.sort()
       |> Enum.map(&elem(&1, 2))
-      # ...and lastly get the 200th element
       |> Enum.at(count - 1)
 
     x * 100 + y
