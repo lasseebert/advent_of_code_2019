@@ -9,13 +9,21 @@ defmodule Advent.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       dialyzer: [plt_add_apps: [:ex_unit]],
-      elixirc_paths: elixirc_paths(Mix.env())
+      elixirc_paths: elixirc_paths(Mix.env()),
+      escript: escript()
     ]
   end
 
   def application do
     [
       extra_applications: [:logger]
+    ]
+  end
+
+  defp escript do
+    [
+      main_module: Advent.Arcade,
+      emu_args: "-noinput -elixir ansi_enabled true"
     ]
   end
 

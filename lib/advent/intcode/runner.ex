@@ -11,10 +11,10 @@ defmodule Advent.Intcode.Runner do
   Inputs, outputs and exit are communicated with message parsing.
   The tag is used in output and exit messages
   """
-  @spec run_async(RuntimeState.t(), any) :: pid
-  def run_async(state, tag) do
+  @spec run_async(RuntimeState.t(), any, timeout: timeout) :: pid
+  def run_async(state, tag, options \\ []) do
     caller = self()
-    timeout = 1_000
+    timeout = Keyword.get(options, :timeout, 1_000)
 
     io = fn
       {:input, caller_state} ->
@@ -62,9 +62,10 @@ defmodule Advent.Intcode.Runner do
     {Enum.reverse(state.caller_state.outputs), state}
   end
 
-  defp run(%{exited: true} = state), do: state
+  @doc false
+  def run(%{exited: true} = state), do: state
 
-  defp run(state) do
+  def run(state) do
     {operation, state} = take_operation(state)
 
     state

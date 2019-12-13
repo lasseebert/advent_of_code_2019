@@ -17,11 +17,11 @@ defmodule Advent.Intcode do
   When the program outputs something {:output, tag, value} is sent to the calling process
   When the program exists, {:program_exit, tag, state} is sent the the caller.
   """
-  @spec run(program, tag) :: pid
-  def run(program, tag) do
+  @spec run(program, tag, timeout: timeout) :: pid
+  def run(program, tag, options \\ []) do
     program
     |> RuntimeState.new()
-    |> Runner.run_async(tag)
+    |> Runner.run_async(tag, options)
   end
 
   @doc """
@@ -33,6 +33,17 @@ defmodule Advent.Intcode do
     program
     |> RuntimeState.new()
     |> Runner.run_sync(inputs)
+  end
+
+  @doc """
+  Run in the same process as the caller and have full control of IO with the provided IO function and custom state
+  Returns the resulting caller state
+  """
+  @spec run_with_io(program, function, any) :: any
+  def run_with_io(program, io, caller_state) do
+    %{RuntimeState.new(program) | io: io, caller_state: caller_state}
+    |> Runner.run()
+    |> Map.fetch!(:caller_state)
   end
 
   @doc """
