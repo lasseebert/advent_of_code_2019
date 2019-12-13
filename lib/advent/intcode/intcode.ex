@@ -19,36 +19,20 @@ defmodule Advent.Intcode do
   """
   @spec run(program, tag) :: pid
   def run(program, tag) do
-    {:ok, pid} =
-      program
-      |> RuntimeState.new(self(), tag)
-      |> Runner.start_link()
-
-    pid
+    program
+    |> RuntimeState.new()
+    |> Runner.run_async(tag)
   end
 
   @doc """
   Convinience function to run a program and supply it with the given input.
   Returns a list of outputs and the exited state
   """
-  @spec run_with_inputs(program, [value], timeout) :: {[value], RuntimeState.t()}
-  def run_with_inputs(program, inputs, timeout \\ 1_000) do
-    pid = run(program, :run_with_inputs)
-
-    Enum.each(inputs, fn input ->
-      send(pid, {:input, input})
-    end)
-
-    receive_outputs(timeout, [])
-  end
-
-  defp receive_outputs(timeout, acc) do
-    receive do
-      {:output, :run_with_inputs, value} -> receive_outputs(timeout, [value | acc])
-      {:program_exit, :run_with_inputs, state} -> {Enum.reverse(acc), state}
-    after
-      timeout -> raise "timeout"
-    end
+  @spec run_with_inputs(program, [value]) :: {[value], RuntimeState.t()}
+  def run_with_inputs(program, inputs) do
+    program
+    |> RuntimeState.new()
+    |> Runner.run_sync(inputs)
   end
 
   @doc """

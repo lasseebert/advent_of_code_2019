@@ -1,28 +1,70 @@
 defmodule Advent.Intcode.Runner do
   @moduledoc """
-  Runs an Intcode program in a process
+  Runs an Intcode program
   """
 
-  use GenServer
+  alias Advent.Intcode.RuntimeState
 
-  def start_link(state) do
-    GenServer.start_link(__MODULE__, state)
+  @doc """
+  Runs the Intcode program in another process
+
+  Inputs, outputs and exit are communicated with message parsing.
+  The tag is used in output and exit messages
+  """
+  @spec run_async(RuntimeState.t(), any) :: pid
+  def run_async(state, tag) do
+    caller = self()
+    timeout = 1_000
+
+    io = fn
+      {:input, caller_state} ->
+        receive do
+          {:input, input} -> {input, caller_state}
+        after
+          timeout -> raise "timeout waiting for input"
+        end
+
+      {:output, output, caller_state} ->
+        send(caller, {:output, tag, output})
+        caller_state
+
+      {:program_exit, state, caller_state} ->
+        send(caller, {:program_exit, tag, state})
+        caller_state
+    end
+
+    state = %{state | io: io}
+
+    spawn(fn -> run(state) end)
   end
 
-  @impl GenServer
-  def init(state) do
-    {:ok, state, {:continue, :run}}
+  @doc """
+  Runs the program in sync. All inputs must be provided up front
+  """
+  @spec run_sync(RuntimeState.t(), [integer]) :: {[integer], RuntimeState.t()}
+  def run_sync(state, inputs) do
+    io = fn
+      {:input, caller_state} ->
+        [input | inputs] = caller_state.inputs
+        {input, %{caller_state | inputs: inputs}}
+
+      {:output, output, caller_state} ->
+        %{caller_state | outputs: [output | caller_state.outputs]}
+
+      {:program_exit, _state, caller_state} ->
+        caller_state
+    end
+
+    state =
+      %{state | io: io, caller_state: %{inputs: inputs, outputs: []}}
+      |> run()
+
+    {Enum.reverse(state.caller_state.outputs), state}
   end
 
-  @impl GenServer
-  def handle_continue(:run, state) do
-    run(state)
-    {:stop, :normal, state}
-  end
+  defp run(%{exited: true} = state), do: state
 
-  def run(%{exited: true} = state), do: state
-
-  def run(state) do
+  defp run(state) do
     {operation, state} = take_operation(state)
 
     state
@@ -41,13 +83,8 @@ defmodule Advent.Intcode.Runner do
   end
 
   defp run_operation(state, {:input, [addr]}) do
-    value =
-      receive do
-        {:input, value} -> value
-      after
-        1_000 -> raise "timeout waiting for input"
-      end
-
+    {value, caller_state} = state.io.({:input, state.caller_state})
+    state = %{state | caller_state: caller_state}
     write(state, addr, value)
   end
 
@@ -95,8 +132,8 @@ defmodule Advent.Intcode.Runner do
 
   defp run_operation(state, {:exit, []}) do
     state = %{state | exited: true}
-    send(state.caller, {:program_exit, state.tag, state})
-    state
+    caller_state = state.io.({:program_exit, state, state.caller_state})
+    %{state | caller_state: caller_state}
   end
 
   # Parses the next operation and sets the pointer to the next operation
@@ -151,8 +188,8 @@ defmodule Advent.Intcode.Runner do
   defp read_var(state, {:rel, addr}), do: read(state, addr + state.relative_base)
 
   defp output(state, value) do
-    send(state.caller, {:output, state.tag, value})
-    state
+    caller_state = state.io.({:output, value, state.caller_state})
+    %{state | caller_state: caller_state}
   end
 
   defp jump(state, addr) do
