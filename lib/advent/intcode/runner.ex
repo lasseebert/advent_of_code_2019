@@ -5,15 +5,6 @@ defmodule Advent.Intcode.Runner do
 
   use GenServer
 
-  def child_spec(state) do
-    %{
-      id: __MODULE__,
-      start: {__MODULE__, :start_link, [state]},
-      type: :worker,
-      restart: :transient
-    }
-  end
-
   def start_link(state) do
     GenServer.start_link(__MODULE__, state)
   end

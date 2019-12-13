@@ -4,11 +4,6 @@ defmodule Advent.Day07Test do
   alias Advent.Day07
   alias Advent.Intcode
 
-  setup do
-    start_supervised!(Intcode.Supervisor)
-    :ok
-  end
-
   describe "part 1" do
     test "example 1" do
       program = "3,15,3,16,1002,16,10,16,1,16,15,15,4,15,99,0,0" |> Intcode.parse_program()

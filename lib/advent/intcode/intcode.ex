@@ -3,7 +3,7 @@ defmodule Advent.Intcode do
   Intcode runtime
   """
 
-  alias Advent.Intcode
+  alias Advent.Intcode.Runner
   alias Advent.Intcode.RuntimeState
 
   @opaque program :: map
@@ -22,7 +22,7 @@ defmodule Advent.Intcode do
     {:ok, pid} =
       program
       |> RuntimeState.new(self(), tag)
-      |> Intcode.Supervisor.run()
+      |> Runner.start_link()
 
     pid
   end

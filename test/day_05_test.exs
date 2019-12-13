@@ -3,11 +3,6 @@ defmodule Advent.Day05Test do
 
   alias Advent.Day05
 
-  setup do
-    start_supervised!(Advent.Intcode.Supervisor)
-    :ok
-  end
-
   describe "part 1" do
     @tag :puzzle_input
     test "puzzle input" do
