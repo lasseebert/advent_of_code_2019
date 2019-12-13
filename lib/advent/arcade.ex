@@ -73,9 +73,8 @@ defmodule Advent.Arcade do
   end
 
   defp print_tile(x, y, tile_id) do
-    # IO.inspect({x, y, render_tile(tile_id)})
     [
-      ANSI.cursor(y + 1, x),
+      ANSI.cursor(y + 1, x + 1),
       render_tile(tile_id)
     ]
     |> IO.write()
