@@ -5,54 +5,56 @@ defmodule Advent.Day14 do
 
   @doc """
   Part 1
-  Runtime is ~2ms on my machine
+  Runtime is ~1ms on my machine
   """
   def needed_ore(input) do
     reactions = parse(input)
-
-    state = %{
-      reactions: reactions,
-      stock: %{},
-      need: %{"FUEL" => 1},
-      ore_spent: 0
-    }
-
-    resolve(state)
+    needed_ore(reactions, 1)
   end
 
   @doc """
   Part 2
   Binary search for the right result
 
-  Runtime is ~31ms on my machine
+  Runtime is ~18ms on my machine
   """
   def max_fuel(input) do
     reactions = parse(input)
-    lower = 1
-    upper = 1_000_000_000_000
+    ore_spent_single = needed_ore(reactions, 1)
 
-    binary_search(reactions, lower, upper)
+    # This estimate is a lower bound, since there are some stock left on each run
+    # We could also use 1 as lower bound, but this optimizes it.
+    estimate = div(1_000_000_000_000, ore_spent_single)
+
+    binary_search(reactions, estimate, nil)
   end
 
   defp binary_search(_reactions, lower, upper) when lower + 1 == upper, do: lower
 
   defp binary_search(reactions, lower, upper) do
-    middle = div(lower + upper, 2)
+    candiate =
+      case upper do
+        nil -> lower * 2
+        upper -> div(lower + upper, 2)
+      end
 
-    ore_spent =
-      %{
-        reactions: reactions,
-        stock: %{},
-        need: %{"FUEL" => middle},
-        ore_spent: 0
-      }
-      |> resolve()
+    ore_spent = needed_ore(reactions, candiate)
 
     cond do
-      ore_spent == 1_000_000_000_000 -> middle
-      ore_spent < 1_000_000_000_000 -> binary_search(reactions, middle, upper)
-      ore_spent > 1_000_000_000_000 -> binary_search(reactions, lower, middle)
+      ore_spent == 1_000_000_000_000 -> candiate
+      ore_spent < 1_000_000_000_000 -> binary_search(reactions, candiate, upper)
+      ore_spent > 1_000_000_000_000 -> binary_search(reactions, lower, candiate)
     end
+  end
+
+  defp needed_ore(reactions, fuel) do
+    %{
+      reactions: reactions,
+      stock: %{},
+      need: %{"FUEL" => fuel},
+      ore_spent: 0
+    }
+    |> resolve()
   end
 
   defp resolve(%{need: empty} = state) when empty == %{}, do: state.ore_spent
