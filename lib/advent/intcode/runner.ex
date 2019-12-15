@@ -14,7 +14,7 @@ defmodule Advent.Intcode.Runner do
   @spec run_async(RuntimeState.t(), any, timeout: timeout) :: pid
   def run_async(state, tag, options \\ []) do
     caller = self()
-    timeout = Keyword.get(options, :timeout, 1_000)
+    timeout = Keyword.get(options, :timeout, 5_000)
 
     io = fn
       {:input, caller_state} ->
