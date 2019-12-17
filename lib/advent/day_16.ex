@@ -31,7 +31,7 @@ defmodule Advent.Day16 do
   def fft_mult_offset(input, _phases) do
     original = input |> parse()
     original_length = length(original)
-    big_length = original_length * 10000
+    big_length = original_length * 10_000
 
     offset = original |> Enum.take(7) |> Enum.join() |> String.to_integer()
     multiplier = div(big_length - offset, original_length) + 1
