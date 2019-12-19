@@ -47,6 +47,24 @@ defmodule Advent.Intcode do
   end
 
   @doc """
+  Sends input to a running Intcode program
+  """
+  def send_input(pid, message), do: send(pid, {:input, message})
+
+  @doc """
+  Receives output from a running Intcode program.
+  """
+  @spec receive_output(atom, timeout) :: {:ok, integer} | :timeout | :program_exit
+  def receive_output(tag, timeout \\ 5_000) do
+    receive do
+      {:output, ^tag, output} -> {:ok, output}
+      {:program_exit, ^tag, _state} -> :program_exit
+    after
+      timeout -> :timeout
+    end
+  end
+
+  @doc """
   Parses a string representation of a program into a program
   """
   @spec parse_program(String.t()) :: program
