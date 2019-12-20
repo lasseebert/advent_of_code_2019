@@ -27,7 +27,7 @@ defmodule Advent.Day20Test do
                    Z       
       """
 
-      assert Day20.shortest_path(input) == 23
+      assert Day20.Part1.shortest_path(input) == 23
     end
 
     test "example 2" do
@@ -71,13 +71,65 @@ defmodule Advent.Day20Test do
                  U   P   P               
       """
 
-      assert Day20.shortest_path(input) == 58
+      assert Day20.Part1.shortest_path(input) == 58
     end
 
     @tag :puzzle_input
     test "puzzle input" do
       input = File.read!("input_files/day_20.txt")
-      assert Day20.shortest_path(input) == 490
+      assert Day20.Part1.shortest_path(input) == 490
+    end
+  end
+
+  describe "part 2" do
+    test "example 1" do
+      input = """
+                   Z L X W       C                 
+                   Z P Q B       K                 
+        ###########.#.#.#.#######.###############  
+        #...#.......#.#.......#.#.......#.#.#...#  
+        ###.#.#.#.#.#.#.#.###.#.#.#######.#.#.###  
+        #.#...#.#.#...#.#.#...#...#...#.#.......#  
+        #.###.#######.###.###.#.###.###.#.#######  
+        #...#.......#.#...#...#.............#...#  
+        #.#########.#######.#.#######.#######.###  
+        #...#.#    F       R I       Z    #.#.#.#  
+        #.###.#    D       E C       H    #.#.#.#  
+        #.#...#                           #...#.#  
+        #.###.#                           #.###.#  
+        #.#....OA                       WB..#.#..ZH
+        #.###.#                           #.#.#.#  
+      CJ......#                           #.....#  
+        #######                           #######  
+        #.#....CK                         #......IC
+        #.###.#                           #.###.#  
+        #.....#                           #...#.#  
+        ###.###                           #.#.#.#  
+      XF....#.#                         RF..#.#.#  
+        #####.#                           #######  
+        #......CJ                       NM..#...#  
+        ###.#.#                           #.###.#  
+      RE....#.#                           #......RF
+        ###.###        X   X       L      #.#.#.#  
+        #.....#        F   Q       P      #.#.#.#  
+        ###.###########.###.#######.#########.###  
+        #.....#...#.....#.......#...#.....#.#...#  
+        #####.#.###.#######.#######.###.###.#.#.#  
+        #.......#.......#.#.#.#.#...#...#...#.#.#  
+        #####.###.#####.#.#.#.#.###.###.#.###.###  
+        #.......#.....#.#...#...............#...#  
+        #############.#.#.###.###################  
+                     A O F   N                     
+                     A A D   M                     
+      """
+
+      assert Day20.Part2.shortest_path(input) == 396
+    end
+
+    @tag :puzzle_input
+    test "puzzle input" do
+      input = File.read!("input_files/day_20.txt")
+      assert Day20.Part2.shortest_path(input) == 5648
     end
   end
 end
