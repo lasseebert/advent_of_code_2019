@@ -1,5 +1,5 @@
 defmodule Advent.IntcodeTest do
-  use Advent.Test.Case
+  use ExUnit.Case, async: true
 
   alias Advent.Intcode
 
