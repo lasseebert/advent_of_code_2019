@@ -18,6 +18,8 @@ defmodule Advent.Intcode.Runner do
 
     io = fn
       {:input, caller_state} ->
+        send(caller, {:input, tag})
+
         receive do
           {:input, input} -> {input, caller_state}
         after
@@ -35,7 +37,7 @@ defmodule Advent.Intcode.Runner do
 
     state = %{state | io: io}
 
-    spawn(fn -> run(state) end)
+    spawn_link(fn -> run(state) end)
   end
 
   @doc """

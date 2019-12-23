@@ -13,7 +13,7 @@ defmodule Advent.Intcode do
 
   @doc """
   Runs an Intcode program in a supervised process with a tag
-  When an input is needed, {:input, value} is received in the program process
+  When an input is needed, {:input, tag} is send and {:input, value} is received in the program process
   When the program outputs something {:output, tag, value} is sent to the calling process
   When the program exists, {:program_exit, tag, state} is sent the the caller.
   """
